@@ -21,6 +21,19 @@ The agent talks to a local `qwen2.5:3b` model served by
 required for local runs. `scripts/agent.py` builds the agent via
 `langchain.agents.create_agent`.
 
+## Tools
+
+- `summarize_hnn_runs` — count/mean/std/min/max over physical and
+  numerical columns (`df.describe()`).
+- `correlate_physical_vs_numerical` — Pearson correlation between each
+  physical column (hamiltonian_error, hamiltonian_drift,
+  trajectory_mse_max, E/B fields, init velocities) and each numeric
+  training-cost column (timestep, epochs, learning_rate, batch_size,
+  hnn_hidden_dim, hamiltonian_loss_weight), sorted by absolute
+  correlation strength. Columns with zero variance in the current data
+  (e.g. `t_end`, `timestep`, `hnn_hidden_dim` are fixed across all 63
+  runs in the local test DB) correctly come back as `NaN`.
+
 ## Progress log
 
 - 2026-08-13: switched `scripts/agent.py` from `initialize_agent` /
@@ -36,6 +49,13 @@ required for local runs. `scripts/agent.py` builds the agent via
   on this host, especially while `hnn`'s `run_study.py` is also running
   and saturating CPU — that latency is from CPU-bound local inference
   under contention, not a bug in the agent.
+- Added `correlate_physical_vs_numerical` for actual data analysis
+  (beyond describe()-style summaries). Verified the correlation math
+  directly against the local DB, then ran it end-to-end through qwen
+  ("Which numerical training settings correlate most strongly with
+  physical accuracy?") — the model picked the new tool correctly and
+  summarized the strongest correlations (e.g. `trajectory_mse_max` vs
+  `final_test_loss_mse` at 0.98).
 
 ## Layout
 

@@ -7,6 +7,7 @@ across the Optuna trials recorded in hnn's runs_minimal table.
 
 import argparse
 
+import pandas as pd
 from db_reader import NUMERICAL_COLUMNS, PHYSICAL_COLUMNS, load_runs
 from langchain.agents import create_agent
 from langchain_core.messages import HumanMessage
@@ -29,6 +30,31 @@ def summarize_hnn_runs(_: str = "") -> str:
     return df[cols].describe().to_string()
 
 
+@tool
+def correlate_physical_vs_numerical(_: str = "") -> str:
+    """Computes Pearson correlation between each physical column
+    (hamiltonian_error, hamiltonian_drift, trajectory_mse_max, E/B fields,
+    init velocities) and each numerical training-cost column (timestep,
+    epochs, learning_rate, batch_size, hnn_hidden_dim,
+    hamiltonian_loss_weight). Returns the pairs sorted by absolute
+    correlation strength, strongest first, to show which numerical knobs
+    most affect physical accuracy."""
+    df = load_runs()
+    if df.empty:
+        return "No runs found in runs_minimal."
+    physical = [c for c in PHYSICAL_COLUMNS if c in df.columns]
+    numerical = [
+        c for c in NUMERICAL_COLUMNS if c in df.columns and pd.api.types.is_numeric_dtype(df[c])
+    ]
+    if not physical or not numerical:
+        return "Not enough numeric physical/numerical columns to correlate."
+    corr = df[physical + numerical].corr(numeric_only=True).loc[physical, numerical]
+    pairs = corr.stack().rename("correlation").reset_index()
+    pairs.columns = ["physical_column", "numerical_column", "correlation"]
+    pairs = pairs.reindex(pairs["correlation"].abs().sort_values(ascending=False).index)
+    return pairs.to_string(index=False)
+
+
 def build_agent():
     llm = ChatOpenAI(
         model="qwen2.5:3b",
@@ -36,7 +62,9 @@ def build_agent():
         api_key="ollama",
         temperature=0,
     )
-    return create_agent(model=llm, tools=[summarize_hnn_runs])
+    return create_agent(
+        model=llm, tools=[summarize_hnn_runs, correlate_physical_vs_numerical]
+    )
 
 
 def main() -> None:
