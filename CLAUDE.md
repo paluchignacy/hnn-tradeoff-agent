@@ -34,6 +34,16 @@ required for local runs. `scripts/agent.py` builds the agent via
   (e.g. `t_end`, `timestep`, `hnn_hidden_dim` are fixed across all 63
   runs in the local test DB) correctly come back as `NaN`.
 
+## Visual benchmarks
+
+`scripts/plot_tradeoffs.py` renders the same physical/numerical
+tradeoff data as PNGs (default output dir `plots/`, gitignored):
+`correlation_heatmap.png` (physical x numerical Pearson correlation)
+and `top_tradeoffs.png` (scatter plots for the strongest-correlated
+pairs). This is a standalone script, not an agent tool — qwen is a text
+model and can't view images, so plotting stays outside the LangChain
+tool loop and is meant to be run/viewed directly by a human.
+
 ## Progress log
 
 - 2026-08-13: switched `scripts/agent.py` from `initialize_agent` /
@@ -56,6 +66,12 @@ required for local runs. `scripts/agent.py` builds the agent via
   physical accuracy?") — the model picked the new tool correctly and
   summarized the strongest correlations (e.g. `trajectory_mse_max` vs
   `final_test_loss_mse` at 0.98).
+- Added `scripts/plot_tradeoffs.py` for visual benchmarks (correlation
+  heatmap + top-tradeoff scatter plots), since text summaries don't show
+  shape/outliers the way a plot does. Ran it against the local DB and
+  visually confirmed both PNGs render correctly — e.g. the heatmap
+  correctly leaves `t_end`/`timestep`/`hnn_hidden_dim` blank (constant
+  in this dataset, so correlation is undefined) instead of erroring.
 
 ## Layout
 

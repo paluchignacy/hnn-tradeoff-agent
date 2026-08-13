@@ -12,8 +12,9 @@ Tracks https://github.com/paluchignacy/hnn/issues/4.
 
 ```
 scripts/
-  db_reader.py   read-only access to hnn's runs_minimal table
-  agent.py       LangChain agent entrypoint
+  db_reader.py       read-only access to hnn's runs_minimal table
+  agent.py           LangChain agent entrypoint
+  plot_tradeoffs.py  generates visual tradeoff benchmarks (PNGs)
 ```
 
 ## Setup
@@ -34,4 +35,13 @@ export OPENAI_API_KEY=...
 
 ```
 python scripts/agent.py "your question about run tradeoffs"
+```
+
+## Visual benchmarks
+
+Generate a correlation heatmap and scatter plots for the strongest
+physical/numerical tradeoffs (written to `plots/` by default):
+
+```
+python scripts/plot_tradeoffs.py
 ```
