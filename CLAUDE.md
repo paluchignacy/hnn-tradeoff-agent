@@ -44,6 +44,15 @@ pairs). This is a standalone script, not an agent tool — qwen is a text
 model and can't view images, so plotting stays outside the LangChain
 tool loop and is meant to be run/viewed directly by a human.
 
+## CI
+
+`.github/workflows/ci.yml` runs on push/PR to `main`: installs
+`requirements.txt`, runs `ruff check scripts`, and imports
+`agent`/`db_reader`/`plot_tradeoffs` to catch import-time breakage. No
+test suite exists yet, so this is intentionally lint + import-only —
+`agent.py`'s `build_agent()`/`load_runs()` aren't exercised since CI has
+no DB file or local ollama server.
+
 ## Progress log
 
 - 2026-08-13: switched `scripts/agent.py` from `initialize_agent` /
@@ -72,6 +81,10 @@ tool loop and is meant to be run/viewed directly by a human.
   visually confirmed both PNGs render correctly — e.g. the heatmap
   correctly leaves `t_end`/`timestep`/`hnn_hidden_dim` blank (constant
   in this dataset, so correlation is undefined) instead of erroring.
+- 2026-08-14: added `.github/workflows/ci.yml` (lint + import check) —
+  there was previously no CI at all, hence nothing showing up under the
+  repo's Actions tab. Verified `ruff check scripts` passes clean and the
+  import check succeeds locally before pushing.
 
 ## Layout
 
